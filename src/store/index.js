@@ -34,7 +34,9 @@ const store = new Vuex.Store({
     }
   },
   actions: {
-
+    async call({ state }) {
+      await state.localMediaObject.call();
+    }
   },
   getters: {
     usernameFromLocalstorage() {

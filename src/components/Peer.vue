@@ -63,7 +63,7 @@ export default {
   },
   mounted() {
     if (this.isLocalUser) {
-      MediaResources.initLocalMedia()
+      MediaResources.initLocalMedia(this.$store.state.username)
         .then(mediaResources => this.$store.commit('setLocalMediaObject', mediaResources))
         .then(() => console.log(this.userMedia));
     }

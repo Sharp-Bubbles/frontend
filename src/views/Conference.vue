@@ -50,6 +50,7 @@ export default {
     },
     sendCallInvite() {
       this.$store.commit('setCalleeUsername', this.calleeUsername);
+      this.$store.dispatch('call');
       this.calleeUsername = '';
     }
   },

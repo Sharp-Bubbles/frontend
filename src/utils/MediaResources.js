@@ -1,7 +1,11 @@
-import sio from 'socket.io';
+const sio = require('socket.io-client');
 
+const offerOptions = {
+  offerToReceiveAudio: 1,
+  offerToReceiveVideo: 1
+};
 class MediaResources {
-  constructor(stream) {
+  constructor(stream, username) {
     this.stream = stream;
     this.remoteStream;
 
@@ -10,19 +14,57 @@ class MediaResources {
 
     this.initSockets();
     this.addListeners();
+    this.setLocalUsername(username);
   }
 
   initSockets() {
-    this.sio = sio('http://0.0.0.0:8000', {path: '/nodejs/socket.io'});
+    this.sio = sio.connect('http://localhost:8000');
+
+    this.initSocketsListeners();
     console.log('server ->>', this.sio)
   }
 
   initSocketsListeners() {
-    this.sio.on('connect')
+    this.sio.on('connect', async () => {
+      console.log('connected');
+      this.sio.emit('add_user', { username: this.localPeerUsername })
+    })
+    this.sio.on('user_added', data => {
+      console.log('user added', data.username);
+    })
+    this.sio.on('user_disconnected', data => {
+      console.log("user disconnected " + data.username)
+    })
+    
+    this.sio.on('call_offered', async data => {
+        console.log("call_offered")
+        console.log(data)
+        await this.acceptCall(data.offer, data.from)
+    })
+    
+    this.sio.on('call_accepted', async data => {
+        console.log("call_accepted")
+        console.log(data)
+        await this.peer.setRemoteDescription(new RTCSessionDescription(data.answer))
+    })
+    
+    this.sio.on('add_ice_candidate', async data => {
+        console.log("try to add ice candidate")
+        console.log(data.candidate)
+        await this.peer.addIceCandidate(new RTCIceCandidate(data.candidate))
+    })
+    
+    this.sio.on('disconnect', () => {
+        console.log('disconnected');
+    });
   }
 
   setRemoteUsername(username) {
     this.remotePeerUsername = username;
+  }
+
+  setLocalUsername(username) {
+    this.localPeerUsername = username;
   }
 
   addListeners() {
@@ -61,12 +103,41 @@ class MediaResources {
   }
 
   async call() {
-    this.openLocalTracks()
+    this.openLocalTracks();
+    
+    this.offerCall(this.remotePeerUsername)
+      .then(() => console.log('call offer sent', this.remotePeer))
   }
 
-  static initLocalMedia() {
+  async offerCall() {
+    const offer = await this.createOffer();
+    this.sio.emit('offer_call', {
+      offer,
+      to: this.remotePeerUsername
+    })
+  }
+
+  async acceptCall(offer) {
+    const answer = await this.createAnswer(offer);
+    sio.emit('accept_call', { answer, with: this.localPeerUsername })
+  }
+
+  async createOffer() {
+    const offer = await this.peer.createOffer(offerOptions);
+    await this.peer.setLocalDescription(new RTCSessionDescription(offer));
+    return offer;
+  }
+
+  async createAnswer(offer) {
+    await this.peer.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await this.peer.createAnswer(offerOptions);
+    await this.peer.setLocalDescription(new RTCSessionDescription(answer));
+    return answer
+  }
+
+  static initLocalMedia(username) {
     return navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      .then(stream => new this(stream))
+      .then(stream => new this(stream, username))
       .catch(err => console.error('getUserMedia() error', err))
   }
 }
