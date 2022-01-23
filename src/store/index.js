@@ -8,24 +8,9 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     username: '',
-    peers: [
-      {
-        name: 'yaro',
-        uid: '2',
-        isCameraEnabled: false,
-        isMicEnabled: false
-      },
-      {
-        name: 'serzh',
-        uid: '3',
-        isCameraEnabled: false,
-        isMicEnabled: false
-      },
-    ],
-    localUser: {
-      name: 'daniel',
-      uid: '1'
-    }
+    calleeUsername: '',
+    peers: [],
+    localMediaObject: {}
   },
   mutations: {
     setUsername(state, username) {
@@ -39,6 +24,13 @@ const store = new Vuex.Store({
     changeUsername(state, username) {
       state.username = username;
       this.commit('setUsernameToLocalStorage', username);
+    },
+    setLocalMediaObject(state, mediaObject) {
+      state.localMediaObject = mediaObject;
+    },
+    setCalleeUsername(state, username) {
+      state.calleeUsername = username;
+      state.localMediaObject.setRemoteUsername(username);
     }
   },
   actions: {

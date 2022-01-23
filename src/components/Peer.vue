@@ -61,16 +61,16 @@ export default {
       type: Boolean,
     }
   },
-  data() {
-    return {
-      userMedia: {},
-    }
-  },
   mounted() {
     if (this.isLocalUser) {
-      this.userMedia = MediaResources.initLocalMedia()
-        .then(mediaResources => this.userMedia = mediaResources)
+      MediaResources.initLocalMedia()
+        .then(mediaResources => this.$store.commit('setLocalMediaObject', mediaResources))
         .then(() => console.log(this.userMedia));
+    }
+  },
+  computed: {
+    userMedia() {
+      return this.$store.state.localMediaObject;
     }
   },
   methods: {

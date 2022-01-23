@@ -23,6 +23,11 @@ const routes = [
     path: '/conference/:id',
     name: 'Conference',
     component: () => import('@/views/Conference.vue')
+  },
+  {
+    path: '/call',
+    name: 'Call',
+    component: () => import('@/views/Conference.vue')
   }
 ]
 

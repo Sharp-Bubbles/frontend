@@ -8,11 +8,11 @@
             <span class="underline">{{ username }}</span>
           </p>
           <div v-else>
-            <input class="rounded text-black pl-2" type="text" :value="username" :username="newUsername" @keydown.enter="save">
+            <input class="rounded text-black pl-2" type="text" :value="username" @input="newUsername = $event.target.value" @keydown.enter="toggleEdit">
           </div>
         </div>
         <div class="text-blue-400 flex items-end">
-          <button class="min-h-full min-w-full" @click="edit">
+          <button class="min-h-full min-w-full" @click="toggleEdit">
             <svg v-if="!isUsernameEditing" style="width:24px;height:24px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" />
             </svg>
@@ -22,8 +22,23 @@
           </button>
         </div>
       </div>
-      <div class="text-2xl sm:pt-96">
-        <div class="flex flex-col sm:flex-row gap-x-8 justify-between items-center mx-auto max-w-1/2">
+      <div class="text-2xl sm:pt-96 flex justify-center items-center">
+          <div class="w-96 h-96 py-4">
+            <button 
+              class="hover:border-white duration-300 pointer items-center bg-blue-400 rounded border-2 border-blue-400 min-w-full min-h-full light-shadow"
+              @click="createCall"
+            >
+              <span class="flex items-center justify-center">
+                <span class="pr-2 text-4xl">Create call</span>
+                <svg style="width:34px;height:34px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" />
+                </svg>
+              </span>
+            </button>
+          </div>
+
+
+        <!-- <div class="flex flex-col sm:flex-row gap-x-8 justify-between items-center mx-auto max-w-1/2">
           <div class="w-96 h-96 py-4">
             <button 
               class="hover:border-white duration-300 pointer items-center bg-blue-400 rounded border-2 border-blue-400 min-w-full min-h-full light-shadow"
@@ -51,7 +66,7 @@
               </span>
             </button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -75,11 +90,20 @@ export default {
       console.log('creating conference');
       this.$router.push({ path: '/conference/123' })
     },
-    edit() {
-      this.isUsernameEditing = true;
+    toggleEdit() {
+      if (this.isUsernameEditing) {
+        this.save()
+      }
+
+      this.isUsernameEditing = !this.isUsernameEditing;
     },
     save() {
-      this.isUsernameEditing = false;
+      this.$store.commit('setUsername', this.newUsername);
+      this.$store.commit('setUsernameToLocalStorage', this.newUsername);
+    },
+
+    createCall() {
+      this.$router.push({ name: 'Call' })
     }
   }
 }
